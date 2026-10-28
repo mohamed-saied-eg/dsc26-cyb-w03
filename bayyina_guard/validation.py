@@ -1,3 +1,6 @@
+"""Upload validation for Bayyina contracts. Rules: README.md, "What to build", part 1."""
+from __future__ import annotations
+
 import re
 import unicodedata
 import uuid
@@ -16,15 +19,16 @@ _MATTER_RE = re.compile(r"MAT-\d{4}-\d{5}", re.ASCII)
 
 class ValidationError(Exception):
     def __init__(self, errors: dict[str, str]):
-        super().__init__(errors)
-        self.errors = errors
+        super().__init__(", ".join(sorted(errors)))
+        self.errors = errors          # field name -> message; keys from: filename, content_type,
+                                      # size_bytes, matter_id, first_bytes
 
 
 @dataclass(frozen=True)
 class CleanUpload:
-    stored_name: str
-    display_name: str
-    extension: str
+    stored_name: str      # "<32 hex chars>.<ext>", generated, never derived from the filename
+    display_name: str     # the filename after NFC normalisation
+    extension: str        # "pdf" or "docx", lowercase
     content_type: str
     size_bytes: int
     matter_id: str
