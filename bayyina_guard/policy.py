@@ -28,15 +28,15 @@ class Decision:
     reason: str
 
 
-VALID_ACTIONS = {"read", "write", "upload", "delete", "share_external"}
+VALID_ACTIONS = {"read", "comment", "upload_version", "delete", "share_external"}
 VALID_ROLES = {"partner", "associate", "paralegal", "client", "auditor"}
 
 ROLE_PERMISSIONS = {
-    "partner": {"read", "write", "upload", "delete", "share_external"},
-    "associate": {"read", "write", "upload", "share_external"},
-    "paralegal": {"read", "upload"},
-    "client": {"read"},
-    "auditor": {"read"},
+    "partner": {"read", "comment", "upload_version", "delete", "share_external"},
+    "associate": {"read", "comment", "upload_version"},
+    "paralegal": {"read", "upload_version"},
+    "client": {"read", "comment"},
+    "auditor": set(),
 }
 
 
