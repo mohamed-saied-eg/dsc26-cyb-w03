@@ -28,11 +28,62 @@ class Decision:
     reason: str
 
 
+VALID_ACTIONS = {"read", "write", "upload", "delete", "share_external"}
+VALID_ROLES = {"partner", "associate", "paralegal", "client", "auditor"}
+
+ROLE_PERMISSIONS = {
+    "partner": {"read", "write", "upload", "delete", "share_external"},
+    "associate": {"read", "write", "upload", "share_external"},
+    "paralegal": {"read", "upload"},
+    "client": {"read"},
+    "auditor": {"read"},
+}
+
+
 def authorize(user: User | None, action: str, doc: Document) -> Decision:
     """Evaluate the nine rules in order and return the first denial, else Decision(True, "ok")."""
-    raise NotImplementedError
+    # 1. unauthenticated
+    if user is None or not user.id:
+        return Decision(False, "unauthenticated")
+    
+    # 2. unknown_action
+    if action not in VALID_ACTIONS:
+        return Decision(False, "unknown_action")
+    
+    # 3. unknown_role
+    if user.role not in VALID_ROLES:
+        return Decision(False, "unknown_role")
+    
+    # 4. legal_hold
+    if action == "delete" and doc.legal_hold:
+        return Decision(False, "legal_hold")
+    
+    # 5. role_not_permitted
+    if action not in ROLE_PERMISSIONS.get(user.role, set()):
+        return Decision(False, "role_not_permitted")
+    
+    # 6. tenant_mismatch
+    if user.role == "client" and (user.client_id is None or user.client_id != doc.client_id):
+        return Decision(False, "tenant_mismatch")
+    
+    # 7. not_assigned
+    if user.role in {"associate", "paralegal"} and doc.matter_id not in user.matters:
+        return Decision(False, "not_assigned")
+    
+    # 8. restricted
+    if user.role in {"associate", "paralegal"} and doc.confidentiality != "normal":
+        return Decision(False, "restricted")
+    
+    # 9. mfa_required
+    if doc.confidentiality != "normal" or action == "share_external":
+        if user.mfa is not True:
+            return Decision(False, "mfa_required")
+            
+    return Decision(True, "ok")
 
 
 def visible_documents(user: User | None, docs: list[Document]) -> list[Document]:
     """The documents `user` may read, in their original order."""
-    raise NotImplementedError
+    if user is None or not user.id:
+        return []
+    return [doc for doc in docs if authorize(user, "read", doc).allowed]
