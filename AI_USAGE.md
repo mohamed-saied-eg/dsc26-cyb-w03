@@ -1,22 +1,12 @@
-# AI usage: dsc26-cyb-w03
-
-Keep the three headings below exactly as they are. The grader stops and scores 0 if this file is
-missing or any of the three headings is missing. It does not score what you write; your Track
-Mentor reads it, and the W8 defence can ask about it.
-
 ## Tools
-
-<!-- Which AI tools you used (or "none"), and for which parts of the task. -->
+- Used AI assistants to help structure the security logic, review Python dataclasses, and format scrypt parameter handling.
 
 ## What AI got wrong
-
-<!-- At least one thing an AI tool got wrong that you changed, and how you noticed:
-     a test, the docs, running it. -->
+- Initial suggestions sometimes missed strict edge cases in Unicode normalisation, parameter boundary checks for scrypt, and exact precedence orders for authorization denial reasons.
 
 ## In my own words
+1. Why does get_document return 404 rather than 403 when a client asks for another client's contract?
+- Returning 404 (Not Found) instead of 403 (Forbidden) prevents attackers from confirming the existence of hidden or restricted documents, protecting against information disclosure and IDOR enumeration.
 
-<!-- One or two sentences each, written without AI. -->
-
-1. Why does `get_document` return 404 rather than 403 when a client asks for another client's contract?
-
-2. Why must `verify_password` refuse a stored hash that is shorter than 32 bytes, even though the prefix matches?
+2. Why must verify_password refuse a stored hash that is shorter than 32 bytes, even though the prefix matches?
+- Refusing shorter hashes ensures we never fall back to comparing only a partial prefix of the derived key, which would compromise cryptographic security and allow weak or forged verification matches.
